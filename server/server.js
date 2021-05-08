@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
     <h2>With <code>"express"</code> npm package</h2>
     <form action="/form" enctype="multipart/form-data" method="post">
       <div>Text field title: <input type="text" name="title" /></div>
-      <div>File: <input type="file" name="someExpressFiles" multiple="multiple" /></div>
+      <div>File: <input type="file" accept=".dem" name="someExpressFiles" multiple="multiple" /></div>
       <input type="submit" value="Upload" />
     </form>
   `)
