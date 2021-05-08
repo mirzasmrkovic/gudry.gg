@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import formidable from 'formidable'
+import { connect } from './utils/db'
 
 const app = express()
 app.disable('x-powered-by')
@@ -35,7 +36,9 @@ app.post('/form', async (req, res) => {
   })
 })
 
-export const start = () => {
+export const start = async () => {
+  const db = process.env.MONGO_DB
+  await connect(db)
   const server = app.listen(port, () => {
     console.log('Server listening on port: ' + port)
   })
