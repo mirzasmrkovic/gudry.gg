@@ -1,6 +1,9 @@
 import express from 'express'
 import cors from 'cors'
-import formidable from 'formidable'
+import os from 'os'
+import fs from 'fs'
+import path from 'path'
+import Busboy from 'busboy'
 import { connect } from './utils/db'
 
 const app = express()
@@ -13,7 +16,7 @@ const port = process.env.PORT || 4000
 app.get('/', (req, res) => {
   res.send(`
     <h2>With <code>"express"</code> npm package</h2>
-    <form action="/form" enctype="multipart/form-data" method="post">
+    <form action="/" enctype="multipart/form-data" method="post">
       <div>Text field title: <input type="text" name="title" /></div>
       <div>File: <input type="file" accept=".dem" name="someExpressFiles" multiple="multiple" /></div>
       <input type="submit" value="Upload" />
@@ -21,19 +24,19 @@ app.get('/', (req, res) => {
   `)
 })
 
-app.post('/form', async (req, res) => {
-  const form = new formidable.IncomingForm()
-  form.parse(req)
+app.post('/', async (req, res) => {
+  const busboy = new Busboy({ headers: req.headers })
 
-  form.on('fileBegin', function (name, file) {
-    console.log('begin')
-    file.path = __dirname + '/uploads/' + file.name
+  busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
+    console.log('file')
+    const saveTo = path.join(os.tmpdir(), path.basename(fieldname))
+    file.pipe(fs.createWriteStream(saveTo))
   })
-  form.on('file', function (name, file) {
-    console.log(name)
-    console.log('Uploaded ' + file.name)
-    res.status(200).send(file)
+  busboy.on('finish', function () {
+    return res.status(200).end()
   })
+
+  return req.pipe(busboy)
 })
 
 export const start = async () => {
