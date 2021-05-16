@@ -1,17 +1,17 @@
 import express from 'express'
 import cors from 'cors'
-import os from 'os'
-import fs from 'fs'
 import path from 'path'
 import Busboy from 'busboy'
-import { connect } from './utils/db'
+import mongodb from 'mongodb'
+import mongoose from 'mongoose'
+import { connection } from './utils/db'
 
+const port = process.env.PORT || 4000
 const app = express()
 app.disable('x-powered-by')
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-const port = process.env.PORT || 4000
 
 app.get('/', (req, res) => {
   res.send(`
@@ -26,22 +26,26 @@ app.get('/', (req, res) => {
 
 app.post('/', async (req, res) => {
   const busboy = new Busboy({ headers: req.headers })
+  const bucket = new mongodb.GridFSBucket(mongoose.connection.db, {
+    bucketName: 'dem'
+    // chunkSizeBytes: 261120
+  })
+  let ops = 0
+  const dec = () => --ops || res.status(200).end("That's all folks!")
 
   busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
-    console.log('file')
-    const saveTo = path.join(os.tmpdir(), path.basename(fieldname))
-    file.pipe(fs.createWriteStream(saveTo))
+    ops++
+    const saveTo = path.join('.', filename)
+    file.pipe(bucket.openUploadStream(saveTo)).on('finish', dec)
   })
-  busboy.on('finish', function () {
-    return res.status(200).end()
-  })
+  busboy.on('finish', dec)
 
   return req.pipe(busboy)
 })
 
 export const start = async () => {
-  const db = process.env.MONGO_DB
-  await connect(db)
+  const mongodb_uri = process.env.MONGO_DB
+  const db = await connection(mongodb_uri)
   const server = app.listen(port, () => {
     console.log('Server listening on port: ' + port)
   })
