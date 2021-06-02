@@ -1,7 +1,4 @@
 import mongoose from 'mongoose'
-// const options = {
-
-// }
 
 export const connection = async (url, opts = {}) => {
   try {
