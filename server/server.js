@@ -45,7 +45,10 @@ app.post('/', async (req, res) => {
 
 export const start = async () => {
   const mongodb_uri = process.env.MONGO_DB
-  const db = await connection(mongodb_uri)
+  const options = {
+    dbName: 'demofile'
+  }
+  const db = await connection(mongodb_uri, options)
   const server = app.listen(port, () => {
     console.log('Server listening on port: ' + port)
   })
