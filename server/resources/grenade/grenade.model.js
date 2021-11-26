@@ -1,7 +1,14 @@
 import { Schema, model } from 'mongoose'
 import { event } from '../common/common.schema'
 
-const types = ['HE', 'FB', 'SM', 'MO', 'DC']
+export const types = [
+  'frag',
+  'flashbang',
+  'smoke',
+  'molotov',
+  'incendiary',
+  'decoy'
+]
 
 const flashedSchema = new Schema({
   victimID: {
@@ -57,15 +64,18 @@ const grenadeSchema = new Schema({
   // Smoke-related properties
   dissipated: {
     type: event,
-    default: function () {
-      if (this.type !== types[2]) return undefined
+    required: function () {
+      if (this.type === types[2]) return true
+      else return false
     }
   },
   // Molly-related properties
   inferno_stop: {
+    // inferno stops/is extinguished
     type: event,
-    default: function () {
-      if (this.type !== types[3]) return undefined
+    required: function () {
+      if (this.type === types[3] || this.type === types[4]) return true
+      else return false
     }
   }
 })
